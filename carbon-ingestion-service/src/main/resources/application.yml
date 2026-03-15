@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: carbon-ingestion-service
+
+  threads:
+    virtual:
+      enabled: true
+
+  cloud:
+    stream:
+      bindings:
+        rawContent-out-0:
+          destination: raw-content
+          content-type: application/json
+      kafka:
+        binder:
+          brokers: localhost:9092
+
+  data:
+    redis:
+      host: localhost
+      port: ${REDIS_PORT:6379}
+      password:
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+server:
+  port: ${PORT:8080}
