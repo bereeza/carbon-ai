@@ -1,6 +1,7 @@
 package com.carbon.ai.repository;
 
 import com.carbon.ai.model.ProcessedContent;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,17 +11,19 @@ import java.util.List;
 public interface ProcessedContentRepository extends JpaRepository<ProcessedContent, Long> {
 
     @Query(value = """
-            SELECT id, original_id, summary, embedding
+            SELECT *
             FROM processed_content
-            ORDER BY embedding <-> CAST(:queryEmbedding AS vector)
-            LIMIT 3
+            ORDER BY embedding
             """, nativeQuery = true)
-    List<ProcessedContent> findTop3BySimilarity(@Param("queryEmbedding") String queryEmbedding);
+    List<ProcessedContent> findBySimilarity(
+            @Param("embedding") float[] embedding,
+            Pageable pageable
+    );
 
-    @Query(value = "SELECT COUNT(*) FROM processed_content", nativeQuery = true)
-    Long countTotalDocuments();
-
-    @Query(value = "SELECT AVG(LENGTH(summary)) FROM processed_content", nativeQuery = true)
+    @Query(value = """
+           SELECT AVG(LENGTH(summary)) 
+           FROM processed_content
+           """, nativeQuery = true)
     Double getAverageSummaryLength();
 
     @Query(value = """

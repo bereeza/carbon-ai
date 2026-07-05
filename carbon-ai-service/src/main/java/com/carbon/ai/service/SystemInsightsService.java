@@ -1,10 +1,11 @@
 package com.carbon.ai.service;
 
 import com.carbon.ai.dto.SystemInsights;
-import com.carbon.ai.exception.ApplicationException;
 import com.carbon.ai.repository.ProcessedContentRepository;
+import com.carbon.shared.exception.ApplicationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class SystemInsightsService {
     public SystemInsights getSystemInsights() {
         try {
             CompletableFuture<Long> totalDocumentsFuture = CompletableFuture.supplyAsync(
-                repository::countTotalDocuments, virtualThreadExecutor
+                repository::count, virtualThreadExecutor
             );
             
             CompletableFuture<Double> avgSummaryLengthFuture = CompletableFuture.supplyAsync(
@@ -46,7 +47,11 @@ public class SystemInsightsService {
 
         } catch (Exception e) {
             log.error("Error fetching system insights", e);
-            throw new ApplicationException("Failed to fetch system insights", e);
+            throw new ApplicationException(
+                    "Failed to fetch system insights",
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    HttpStatus.INTERNAL_SERVER_ERROR.value()
+            );
         }
     }
 }

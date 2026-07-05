@@ -1,22 +1,23 @@
 package com.carbon.ai.service;
 
-import com.carbon.ai.exception.ApplicationException;
 import com.carbon.ai.model.ProcessedContent;
 import com.carbon.ai.repository.ProcessedContentRepository;
 import com.carbon.shared.event.ContentEvent;
+import com.carbon.shared.exception.ApplicationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutorService;
 
 import static java.lang.String.format;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AiProcessingService {
 
     private final ChatModel chatModel;
@@ -54,7 +55,9 @@ public class AiProcessingService {
         } catch (Exception e) {
             log.error("Failed to process ContentUploadedEvent actionId={}", event.id(), e);
             throw new ApplicationException(
-                    format("Failed to process ContentUploadedEvent actionId=%s", event.id()), e
+                    format("Failed to process ContentUploadedEvent actionId=%s", event.id()),
+                    HttpStatus.BAD_REQUEST,
+                    HttpStatus.BAD_REQUEST.value()
             );
         }
     }

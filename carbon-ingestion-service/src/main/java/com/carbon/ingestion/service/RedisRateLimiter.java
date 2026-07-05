@@ -1,11 +1,12 @@
 package com.carbon.ingestion.service;
 
-import com.carbon.ingestion.exception.ApplicationException;
-import com.carbon.ingestion.exception.RateLimitExceededException;
+import com.carbon.shared.exception.RateLimitExceededException;
+import com.carbon.shared.exception.ApplicationException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -62,7 +63,11 @@ public class RedisRateLimiter {
             return redisTokenBucket;
         }
 
-        throw new ApplicationException("Failed to deserialize bucket from Redis");
+        throw new ApplicationException(
+                "Failed to deserialize bucket from Redis",
+                HttpStatus.BAD_REQUEST,
+                HttpStatus.BAD_REQUEST.value()
+        );
     }
 
     public record RateLimitResult(boolean allowed, double remainingTokens) {
