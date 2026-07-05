@@ -6,18 +6,20 @@ import com.carbon.ai.model.SearchLog;
 import com.carbon.ai.repository.ProcessedContentRepository;
 import com.carbon.ai.repository.SearchLogRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SemanticSearchService {
@@ -31,11 +33,9 @@ public class SemanticSearchService {
     public String semanticSearch(String query) {
         logSearchQuery(query);
         
-        float[] queryEmbedding = embeddingModel.embed(query);
+        float[] embeddingLiteral = embeddingModel.embed(query);
 
-        String embeddingLiteral = toPgVectorLiteral(queryEmbedding);
-
-        List<ProcessedContent> topMatches = repository.findTop3BySimilarity(embeddingLiteral);
+        List<ProcessedContent> topMatches = repository.findBySimilarity(embeddingLiteral, PageRequest.of(0, 3));
 
         if (topMatches.isEmpty()) {
             return "No relevant context found to answer this question.";
@@ -82,14 +82,8 @@ public class SemanticSearchService {
                 .query(query)
                 .searchedAt(LocalDateTime.now())
                 .build();
-        searchLogRepository.save(searchLog);
-    }
 
-    private String toPgVectorLiteral(float[] embedding) {
-        if (embedding == null || embedding.length == 0) {
-            throw new IllegalArgumentException("Embedding must not be null or empty");
-        }
-        return Arrays.toString(embedding);
+        searchLogRepository.save(searchLog);
     }
 }
 

@@ -9,7 +9,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5433/carbon
     username: ${POSTGRE_USER:carbon}
-    password: ${POSTGRE_PASSWORD}
+    password: ${POSTGRE_PASSWORD:carbonpass}
 
   jpa:
     hibernate:

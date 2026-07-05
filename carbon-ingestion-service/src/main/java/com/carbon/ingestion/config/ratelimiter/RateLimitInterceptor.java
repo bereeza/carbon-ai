@@ -1,6 +1,6 @@
 package com.carbon.ingestion.config.ratelimiter;
 
-import com.carbon.ingestion.exception.RateLimitExceededException;
+import com.carbon.shared.exception.RateLimitExceededException;
 import com.carbon.ingestion.service.RedisRateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
