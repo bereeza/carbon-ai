@@ -1,5 +1,6 @@
 package com.carbon.ai.api;
 
+import com.carbon.ai.dto.SearchResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,7 +24,7 @@ public interface SearchAPI {
                     description = "Successfully retrieved search results",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = String.class)
+                            schema = @Schema(implementation = com.carbon.ai.dto.SearchResponse.class)
                     )
             ),
             @ApiResponse(
@@ -32,5 +33,5 @@ public interface SearchAPI {
             )
     })
     @GetMapping(path = "/search")
-    ResponseEntity<String> search(@RequestParam(value = "query") String query);
+    ResponseEntity<SearchResponse> search(@RequestParam(value = "query") String query);
 }

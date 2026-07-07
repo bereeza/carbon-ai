@@ -11,10 +11,10 @@ import java.util.List;
 public interface ProcessedContentRepository extends JpaRepository<ProcessedContent, Long> {
 
     @Query(value = """
-            SELECT *
-            FROM processed_content
-            ORDER BY embedding
-            """, nativeQuery = true)
+        SELECT *, embedding <=> cast(:embedding as vector) as distance
+        FROM carbon.processed_content
+        ORDER BY distance
+        """, nativeQuery = true)
     List<ProcessedContent> findBySimilarity(
             @Param("embedding") float[] embedding,
             Pageable pageable

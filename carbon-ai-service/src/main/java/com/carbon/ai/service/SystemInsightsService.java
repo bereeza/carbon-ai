@@ -3,6 +3,7 @@ package com.carbon.ai.service;
 import com.carbon.ai.dto.SystemInsights;
 import com.carbon.ai.repository.ProcessedContentRepository;
 import com.carbon.shared.exception.ApplicationException;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -53,5 +54,10 @@ public class SystemInsightsService {
                     HttpStatus.INTERNAL_SERVER_ERROR.value()
             );
         }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        virtualThreadExecutor.shutdown();
     }
 }
