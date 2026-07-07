@@ -1,6 +1,7 @@
 package com.carbon.ai.service;
 
-import com.carbon.ai.config.AnalyticsConfig;
+import com.carbon.ai.config.AnalyticsProperties;
+import com.carbon.ai.dto.SearchResponse;
 import com.carbon.ai.model.ProcessedContent;
 import com.carbon.ai.model.SearchLog;
 import com.carbon.ai.repository.ProcessedContentRepository;
@@ -14,9 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -28,9 +27,10 @@ public class SemanticSearchService {
     private final ChatModel chatModel;
     private final ProcessedContentRepository repository;
     private final SearchLogRepository searchLogRepository;
+    private final AnalyticsProperties analyticsProperties;
 
     @Transactional
-    public String semanticSearch(String query) {
+    public SearchResponse semanticSearch(String query) {
         logSearchQuery(query);
         
         float[] embeddingLiteral = embeddingModel.embed(query);
@@ -38,7 +38,9 @@ public class SemanticSearchService {
         List<ProcessedContent> topMatches = repository.findBySimilarity(embeddingLiteral, PageRequest.of(0, 3));
 
         if (topMatches.isEmpty()) {
-            return "No relevant context found to answer this question.";
+            return SearchResponse.builder()
+                    .answer("No relevant context found to answer this question.")
+                    .build();
         }
 
         String context = topMatches.stream()
@@ -55,15 +57,21 @@ public class SemanticSearchService {
                 %s
                 """.formatted(context, query);
 
-        return chatModel.call(prompt);
+        return SearchResponse.builder()
+                .answer(chatModel.call(prompt))
+                .build();
     }
 
     public Map<String, Integer> findTopFrequentWords() {
+        var stopWords = Arrays.stream(analyticsProperties.getStopWords())
+                .map(word -> "'" + word + "'")
+                .collect(Collectors.joining(", "));
+
         var results = searchLogRepository.getTopFrequentWords(
-                AnalyticsConfig.RECENT_SEARCHES_LIMIT,
-                AnalyticsConfig.MIN_WORD_LENGTH,
-                AnalyticsConfig.STOP_WORDS_SQL_IN_CLAUSE,
-                AnalyticsConfig.TOP_WORDS_LIMIT
+                analyticsProperties.getRecentSearchesLimit(),
+                analyticsProperties.getMinWordLength(),
+                stopWords,
+                analyticsProperties.getTopWordsLimit()
         );
 
         Map<String, Integer> wordFrequencyMap = new HashMap<>();
@@ -81,6 +89,7 @@ public class SemanticSearchService {
         SearchLog searchLog = SearchLog.builder()
                 .query(query)
                 .searchedAt(LocalDateTime.now())
+                .userId(UUID.randomUUID().toString())
                 .build();
 
         searchLogRepository.save(searchLog);

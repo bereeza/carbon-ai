@@ -15,7 +15,7 @@ public interface SearchLogRepository extends JpaRepository<SearchLog, Long> {
                 SELECT regexp_split_to_table(lower(query), '[^a-z0-9]+') as word
                 FROM (
                     SELECT query
-                    FROM search_logs
+                    FROM carbon.search_logs
                     ORDER BY searched_at DESC
                     LIMIT :limit
                 ) recent_searches

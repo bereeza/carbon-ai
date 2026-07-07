@@ -48,3 +48,15 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.carbon.ai: DEBUG
 
+carbon:
+  analytics:
+    stop-words: the, a, an, is, are, was, were, be, been, being,
+                  and, or, but, if, while, when, where, how, what, why, who,
+                  for, to, of, in, on, at, by, with, from, up, out, about,
+                  this, that, these, those, i, you, he, she, it, we, they,
+                  me, him, her, us, them, my, your, his, its, our, their,
+                  can, could, will, would, shall, should, may, might, must,
+                  do, does, did, have, has, had, so, than, more, most
+    min-word-length: 3
+    recent-searches-limit: 1000
+    top-words-limit: 5

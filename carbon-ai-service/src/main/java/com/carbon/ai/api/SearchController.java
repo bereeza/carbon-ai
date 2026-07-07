@@ -1,5 +1,6 @@
 package com.carbon.ai.api;
 
+import com.carbon.ai.dto.SearchResponse;
 import com.carbon.ai.service.SemanticSearchService;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +15,11 @@ public class SearchController implements SearchAPI {
     private final SemanticSearchService semanticSearchService;
 
     @Override
-    public ResponseEntity<String> search(
+    public ResponseEntity<SearchResponse> search(
             @Parameter(description = "Search query for semantic search", required = true)
-            @RequestParam("query") String query) {
-        String answer = semanticSearchService.semanticSearch(query);
-        return ResponseEntity.ok(answer);
+            @RequestParam("query") String query
+    ) {
+        return ResponseEntity.ok(semanticSearchService.semanticSearch(query));
     }
 }
 
