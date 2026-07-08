@@ -1,5 +1,6 @@
 package com.carbon.ingestion.service;
 
+import com.carbon.ingestion.config.ratelimiter.RateLimitProperties;
 import com.carbon.shared.exception.RateLimitExceededException;
 import com.carbon.shared.exception.ApplicationException;
 import lombok.RequiredArgsConstructor;
@@ -9,10 +10,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.Objects;
 
-import static com.carbon.ingestion.config.ratelimiter.DefaultLimiterConstant.*;
 import static java.lang.String.format;
 
 @Service
@@ -21,8 +20,7 @@ import static java.lang.String.format;
 public class RedisRateLimiter {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private static final int BUCKET_CAPACITY = 10;
-    private static final Duration BUCKET_TTL = Duration.ofHours(1);
+    private final RateLimitProperties rateLimitProperties;
     private static final String RATE_LIMIT_PREFIX = "rate_limit:";
 
     public RateLimitResult checkRateLimit(String userKey) {
@@ -31,22 +29,26 @@ public class RedisRateLimiter {
         try {
             var bucket = getOrCreateBucket(redisKey);
 
-            if (bucket.tryConsume(SMALL_TEXT_TOKENS.value)) {
-                redisTemplate.opsForValue().set(redisKey, bucket, BUCKET_TTL);
+            if (bucket.tryConsume(rateLimitProperties.getSmallTextTokens())) {
+                redisTemplate.opsForValue().set(redisKey, bucket, rateLimitProperties.getBucketTtl());
                 var remainingTokens = bucket.getRemainingTokens();
 
                 return new RateLimitResult(true, remainingTokens);
             } else {
-                redisTemplate.opsForValue().set(redisKey, bucket, BUCKET_TTL);
+                redisTemplate.opsForValue().set(redisKey, bucket, rateLimitProperties.getBucketTtl());
                 var remainingTokens = bucket.getRemainingTokens();
 
                 throw new RateLimitExceededException(
-                        format("Rate limit exceeded. Available tokens: %.1f, required: %f", remainingTokens, SMALL_TEXT_THRESHOLD.value)
+                        format(
+                                "Rate limit exceeded. Available tokens: %.1f, required: %d",
+                                remainingTokens,
+                                rateLimitProperties.getSmallTextTokens()
+                        )
                 );
             }
         } catch (Exception e) {
-            log.error("Error during rate limit check for user: {}, requestedTokens: {}", userKey, SMALL_TEXT_THRESHOLD.value, e);
-            throw new RateLimitExceededException("Rate limiting service unavailable. Please try again later.");
+            log.error("Error during rate limit check for user: {}, requestedTokens: {}", userKey, rateLimitProperties.getSmallTextTokens(), e);
+            throw new RateLimitExceededException("Rate limiting service unavailable.");
         }
     }
 
@@ -55,7 +57,7 @@ public class RedisRateLimiter {
         var bucket = redisTemplate.opsForValue().get(redisKey);
         if (Objects.isNull(bucket)) {
             log.info("No existing bucket found in Redis, creating new one for key: {}", redisKey);
-            return new RedisTokenBucket(BUCKET_CAPACITY, REFILL_RATE.value);
+            return new RedisTokenBucket(rateLimitProperties.getBucketCapacity(), rateLimitProperties.getRefillRate());
         }
 
         if (bucket instanceof RedisTokenBucket redisTokenBucket) {
