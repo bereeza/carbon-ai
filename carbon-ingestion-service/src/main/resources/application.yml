@@ -30,3 +30,11 @@ spring:
 
 server:
   port: ${PORT:8080}
+
+carbon:
+  ratelimit:
+    bucket-capacity: 10
+    bucket-ttl: 1h
+    refill-rate: 10
+    small-text-tokens: 2
+    small-text-treshold: 1024
