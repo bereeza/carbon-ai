@@ -1,6 +1,7 @@
 package com.carbon.ai.api;
 
 import com.carbon.ai.dto.SearchResponse;
+import com.carbon.ai.model.PromptType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,5 +34,8 @@ public interface SearchAPI {
             )
     })
     @GetMapping(path = "/search")
-    ResponseEntity<SearchResponse> search(@RequestParam(value = "query") String query);
+    ResponseEntity<SearchResponse> search(
+            @RequestParam(value = "query") String query,
+            @RequestParam(value = "promptType", defaultValue = "STANDARD") PromptType promptType
+    );
 }
