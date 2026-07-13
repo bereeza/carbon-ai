@@ -2,6 +2,7 @@ package com.carbon.ai.service;
 
 import com.carbon.ai.config.AnalyticsProperties;
 import com.carbon.ai.dto.SearchResponse;
+import com.carbon.ai.model.PromptType;
 import com.carbon.ai.model.ProcessedContent;
 import com.carbon.ai.model.SearchLog;
 import com.carbon.ai.repository.ProcessedContentRepository;
@@ -28,9 +29,14 @@ public class SemanticSearchService {
     private final ProcessedContentRepository repository;
     private final SearchLogRepository searchLogRepository;
     private final AnalyticsProperties analyticsProperties;
+    private final PromptService promptService;
 
     @Transactional
     public SearchResponse semanticSearch(String query) {
+        return semanticSearch(query, PromptType.STANDARD);
+    }
+
+    public SearchResponse semanticSearch(String query, PromptType promptType) {
         logSearchQuery(query);
         
         float[] embeddingLiteral = embeddingModel.embed(query);
@@ -47,15 +53,12 @@ public class SemanticSearchService {
                 .map(ProcessedContent::getSummary)
                 .collect(Collectors.joining("\n\n"));
 
-        String prompt = """
-                Based on the following context, please answer the user's question.
+        Map<String, String> variables = Map.of(
+            "context", context,
+            "query", query
+        );
 
-                Context:
-                %s
-
-                Question:
-                %s
-                """.formatted(context, query);
+        String prompt = promptService.getPrompt("semantic-search", promptType, variables);
 
         return SearchResponse.builder()
                 .answer(chatModel.call(prompt))

@@ -1,6 +1,7 @@
 package com.carbon.ai.api;
 
 import com.carbon.ai.dto.SearchResponse;
+import com.carbon.ai.model.PromptType;
 import com.carbon.ai.service.SemanticSearchService;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +18,11 @@ public class SearchController implements SearchAPI {
     @Override
     public ResponseEntity<SearchResponse> search(
             @Parameter(description = "Search query for semantic search", required = true)
-            @RequestParam("query") String query
+            @RequestParam("query") String query,
+            @Parameter(description = "Prompt type for response style")
+            @RequestParam(value = "promptType", defaultValue = "STANDARD") PromptType promptType
     ) {
-        return ResponseEntity.ok(semanticSearchService.semanticSearch(query));
+        return ResponseEntity.ok(semanticSearchService.semanticSearch(query, promptType));
     }
 }
 

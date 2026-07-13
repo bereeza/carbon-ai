@@ -60,3 +60,47 @@ carbon:
     min-word-length: 3
     recent-searches-limit: 1000
     top-words-limit: 5
+
+  prompts:
+    categories:
+      semantic-search:
+        standard: |
+          Based on the following context, please answer the user's question accurately and comprehensively.
+
+          Context:
+          {context}
+
+          Question:
+          {query}
+        concise: |
+          Based on the following context, provide a brief and direct answer to the user's question.
+
+          Context:
+          {context}
+
+          Question:
+          {query}
+        detailed: |
+          Based on the following context, provide a comprehensive answer with detailed explanations and examples.
+
+          Context:
+          {context}
+
+          Question:
+          {query}
+        technical: |
+          Based on the following context, provide a technical answer with precise terminology and implementation details.
+
+          Context:
+          {context}
+
+          Question:
+          {query}
+        simple: |
+          Based on the following context, provide a simple and easy-to-understand answer for non-technical users.
+
+          Context:
+          {context}
+
+          Question:
+          {query}
